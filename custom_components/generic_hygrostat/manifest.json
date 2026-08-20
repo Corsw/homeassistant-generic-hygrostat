@@ -1,9 +1,12 @@
 {
   "domain": "generic_hygrostat",
   "name": "Generic Hygrostat",
-  "documentation": "https://github.com/basschipper/homeassistant-generic-hygrostat",
+  "codeowners": ["@Corsw"],
   "dependencies": [],
-  "codeowners": ["@basschipper"],
+  "documentation": "https://github.com/Corsw/homeassistant-generic-hygrostat",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/Corsw/homeassistant-generic-hygrostat/issues",
   "requirements": [],
-  "version": "0.8.0"
+  "version": "0.9.0"
 }
