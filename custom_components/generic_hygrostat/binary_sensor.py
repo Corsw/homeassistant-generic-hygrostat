@@ -1,13 +1,17 @@
 """
-Adds support for generic hygrostat units.
+Generic Hygrostat for Home Assistant.
 
-For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/binary_sensor.generic_hygrostat/
+Detects rapid rises in relative humidity and exposes the result as a
+binary sensor.
+
+For documentation, see:
+https://github.com/Corsw/homeassistant-generic-hygrostat
 """
 
 import collections
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
+import math
 
 import voluptuous as vol
 
@@ -24,7 +28,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import async_track_time_interval
-
+from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -192,7 +196,7 @@ class GenericHygrostat(BinarySensorEntity):
     @callback
     def _async_update(self, now=None):
         """Update the hygrostat state."""
-        current_time = datetime.now()
+        current_time = now or dt_util.now()
         max_on_time_reached = False
 
         # Check the maximum on-time even when the humidity sensor is
@@ -319,6 +323,15 @@ class GenericHygrostat(BinarySensorEntity):
             )
             return False
 
+        if not math.isfinite(humidity):
+            self._attr_available = False
+            _LOGGER.warning(
+                "Humidity sensor '%s' has non-finite value '%s'",
+                self.sensor_id,
+                raw_value,
+            )
+            return False
+
         self._attr_available = True
         self.sensor_humidity = humidity
         self.add_sample(humidity)
@@ -370,7 +383,7 @@ class GenericHygrostat(BinarySensorEntity):
     def set_min_on_timer(self):
         """Set the minimum on-time timer."""
         if self.min_on_timer is None:
-            self.min_on_timer = datetime.now() + self.min_on_time
+            self.min_on_timer = dt_util.now() + self.min_on_time
 
     def reset_min_on_timer(self):
         """Unset the minimum on-time timer."""
@@ -379,7 +392,7 @@ class GenericHygrostat(BinarySensorEntity):
     def set_max_on_timer(self):
         """Set the maximum on-time timer."""
         if self.max_on_timer is None:
-            self.max_on_timer = datetime.now() + self.max_on_time
+            self.max_on_timer = dt_util.now() + self.max_on_time
 
     def reset_max_on_timer(self):
         """Unset the maximum on-time timer."""
@@ -406,7 +419,7 @@ class GenericHygrostat(BinarySensorEntity):
             return "mdi:water-off"
 
         if self._attr_is_on:
-            return "mdi:water-alert"
+            return "mdi:water-plus"
 
         return "mdi:water-outline"
 
